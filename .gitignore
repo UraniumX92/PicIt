@@ -1,0 +1,7 @@
+/img/
+/succes_nokey/
+/tempold/
+*.png
+*.jpg
+/.idea/
+/__pycache__/
