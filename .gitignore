@@ -5,3 +5,6 @@
 *.jpg
 /.idea/
 /__pycache__/
+PicIt.spec
+/build/
+/dist/
