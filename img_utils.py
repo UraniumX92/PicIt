@@ -153,7 +153,7 @@ def hide_data(message:str, key:list, enc_strictnes:tuple) -> Image.Image :
     return img
 
 
-def check_img(img:Image.Image) -> None:
+def check_img(img:Image.Image) -> Image.Image | None:
     """
     Takes an Image object and checks if the given image is encoded using PicIt or not
     if image is not encoded by PicIt, then raises the exception `ValueError`
@@ -320,6 +320,15 @@ def extract_data(img:Image.Image) -> str:
     else:
         return "".join([chr(x) for x in text_list])
 
+def get_enc_tup(img:Image.Image) -> tuple:
+    """
+    takes Image object and returns the encryption strictness tuple
+    :param img:
+    :return: tuple present at encryption strictness pixel i.e (1,0) or (0,1)
+    """
+    img = check_img(img)
+    return img.getpixel((1,0))
+
 """
     Basic structure and legend:
     
@@ -333,8 +342,3 @@ def extract_data(img:Image.Image) -> str:
     0 - vertical
     1 - horizontal
 """
-
-if __name__ == '__main__':
-    img = Image.open("khjla.png",'r')
-    r,g,b = img.getpixel((2,0))
-    print(r,g,b)

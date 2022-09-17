@@ -134,13 +134,3 @@ def get_size_from_tuple(tup:tuple) -> int:
     btup = [binary_conversion.decimal_to_binary(x) for x in tup]
     b24bit = "".join(btup)
     return binary_conversion.binary_to_decimal(b24bit)
-
-if __name__ == '__main__':
-    print(get_dimension(4000))
-    print(len(ascii_values))
-    # t = input("Enter text: ")
-    # k = input("Enter key separating each value with space: ").split(" ")
-    # k = [ord(x) for x in k]
-    # c = ciph(t,k)
-    # d = deciph(c,k)
-    # print(f"encrypted text : {c}\ndecrypted text: {d}\noperation : {'Success' if d==t else 'Failure'}")

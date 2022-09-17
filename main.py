@@ -27,8 +27,15 @@
             (1,0,0) --> Key is manually added, user should provide the key, regardless of key being correct or not, data will be decrypted and sent
             (1,1,0) --> Key is manually added, user should provide only the correct key, or else no data will be provided to user
 
-        > length tuple interpretation: DEPRECATED!! GOTTA UPDATE DOCS
-            (a,0,b) --> length = (2**a)-b
+        > Storing of lengths of key, text:
+            let's say `len` is the length here, convert `len` into 24-bit binary representation,
+            slice this 24-bit binary string into three 8-bit binary strings
+            convert this three 8-bit binaries into int and store in a tuple as (a,b,c)
+
+        > length tuple interpretation:
+            (a,b,c) --> convert a,b,c to binary 8-bit representation
+            concatenate all three 8-bit binary string, we get a 24-bit binary string
+            convert this 24-bit binary string to int, now we have the length.
 
         > Co-ordinate tuple interpretation:
             (a,n,b) --> (x,y) = (a,b)
@@ -43,107 +50,120 @@
             Yes : only encrypted text will be stored, receiving user will have to enter key manually to extract message.
             No : encryption key will be randomly generated and will be stored in picture with metadata
         > file for messages:
-            save the extracted message to a .txt file (ask the name of file in prompt)
+            save the extracted message to a .txt file
             read the text file and store the content of file as message.
 """
 from PIL import Image
-from tkinter import Tk
-import PIL
+from tkinter import *
+from tkinter import filedialog as fd
+import commands
 import random
 import img_utils
 import utils
+import os
 
-# GUI using tkinter will be created here
+# CONSTANTS
+green_Tcolor = '#10AD14'
+BACKGROUND = '#2F3136'
+darker_BG = '#222222'
+lighter_BG = '#55585E'
+xs_padding = 3
+s_padding = 5
+m_padding = 10
+header_font_tuple = ('consolas',20,'bold')
+header_font_tuple2 = ('consolas',18,'bold')
+txt_font_tuple = ('consolas',12)
+label_font_tuple = ('Segoe UI Symbol',12,'bold')
+btn_font_tuple = ('Segoe UI Symbol', 10)
+lable_text_color = 'white'
 
-if __name__ == '__main__':
-    op = int(input("1. Hide message in Image\n2. Extract message from Image: "))
-    match op:
-        case 1:
-            enc_strct = (0,0,0)
-            t = input("Enter text: ")
-            key = [random.randint(1,200) for x in range(10)]
-            print(len(t))
-            kc = int(input("do you want to enter key manually? 1 for yes. 2 for no: "))
-            if kc==1:
-                key = list(input("Enter the key"))
-                key = [ord(x) for x in key]
-                enc_strct = (1,0,0)
-                print(key)
+# root window configurations
+root = Tk()
+root.geometry("1250x900")
+root.resizable(width=False,height=False)
+root.config(background=BACKGROUND)
+root.title("PicIt - Application by Syed Usama")
 
-            print(key)
-            img = img_utils.hide_data(t, key,enc_strct)
-            rname = "".join([chr(random.randint(97,120)) for x in range(5)])
-            img.save(f'{rname}.png','png')
-            # ----------------------------------------- #
-            print("opening created image: ")
-            img = Image.open(f'{rname}.png','r')
-            img_len = img.size[0]
-            ti_len = img_len - 1
-            map_to_pixel = {
-                'txtlen': (0, 0),
-                'txtco-ord': (0, ti_len),
-                'keylen': (ti_len, 0),
-                'keyco-ord': (ti_len, ti_len),
-                'encstrict': ((0, 1), (1, 0))
-            }
-            try:
-                # etext = img_utils.extract_data(img)
-                text = img_utils.extract_data(img)
-                enc_strict = img.getpixel(map_to_pixel['encstrict'][0])
-                if enc_strict[0] == 0:
-                    print("Extracted text is:\n")
-                    print(text)
-                else:
-                    print("Looks like you have to enter the key to get the data")
-                    key = list(input("Enter the key: "))
-                    key = [ord(x) for x in key]
-                    print(key)
-                    text = utils.deciph(text, key)
-                    if enc_strict[1] == 1 and text.split(" ")[0] == "PicIt":
-                        print("Extracted text is:\n")
-                        print(text)
-                    else:
-                        pass
+# Variables
+enc_strictness = IntVar()
+key = StringVar()
+ext_key = StringVar()
 
-                    if enc_strict[1] == 0:
-                        print("Extracted text is:\n")
-                        print(text)
+# ---- creating and packing GUI elements ---- #
 
-            except ValueError as e:
-                print(e.args[0])
-        case 2:
-            i = input("Enter the name of image: ")
-            img = Image.open(i,'r')
-            img_len = img.size[0]
-            ti_len = img_len-1
-            map_to_pixel = {
-                'txtlen': (0, 0),
-                'txtco-ord': (0, ti_len),
-                'keylen': (ti_len, 0),
-                'keyco-ord': (ti_len, ti_len),
-                'encstrict': ((0, 1), (1, 0))
-            }
-            try:
-                # etext = img_utils.extract_data(img)
-                text = img_utils.extract_data(img)
-                enc_strict = img.getpixel(map_to_pixel['encstrict'][0])
-                if enc_strict[0] == 0:
-                    print("Extracted text is:\n")
-                    print(text)
-                else:
-                    print("Looks like you have to enter the key to get the data")
-                    key = list(input("Enter the key: "))
-                    key = [ord(x) for x in key]
-                    text = utils.deciph(text,key)
-                    if enc_strict[1]==1 and text.split(" ")[0] == "PicIt":
-                        print("Extracted text is:\n")
-                        print(text)
-                    else:
-                        pass
+# Title Label
+t_label = Label(text="PicIt - Turn Your Text Into a Picture",font=header_font_tuple,background=BACKGROUND,foreground=lable_text_color)
+t_label.pack(side=TOP,pady=m_padding,padx=m_padding,ipady=s_padding,ipadx=s_padding)
 
-                    if enc_strict[1]==0:
-                        print("Extracted text is:\n")
-                        print(text)
+# Input Frame
+inpFrame = Frame(master=root,background=BACKGROUND)
+inpFrame.pack(side=TOP,pady=s_padding,padx=s_padding,expand=True,anchor=N)
 
-            except ValueError as e:
-                print(e.args[0])
+# Input text area
+inp_label = Label(master=inpFrame,text="Enter the text :",font=label_font_tuple,background=BACKGROUND,foreground=lable_text_color)
+inp_label.grid(row=0,column=0,pady=s_padding,padx=s_padding,sticky=N)
+inp_field = Text(master=inpFrame,insertbackground=green_Tcolor,font=txt_font_tuple, foreground=green_Tcolor, background=darker_BG, height=17, width=120)
+inp_field.grid(row=0,column=1,padx=s_padding,pady=s_padding)
+
+# Key Label Entry
+key_label = Label(master=inpFrame,text="Enter the key :",font=label_font_tuple,background=BACKGROUND,foreground=lable_text_color)
+key_label.grid(row=1,column=0,pady=s_padding,padx=s_padding)
+key_entry =Entry(master=inpFrame,textvariable=key,width=120,background=darker_BG,font=txt_font_tuple,foreground=green_Tcolor,insertbackground=green_Tcolor,readonlybackground=BACKGROUND)
+key_entry.grid(row=1,column=1,padx=s_padding,pady=s_padding,ipady=xs_padding)
+
+
+# Radio Frame for storing radio buttons
+radFrame = Frame(master=inpFrame,background=BACKGROUND)
+radFrame.grid(row=2,column=1)
+
+radio_label = Label(master=radFrame,text="Select Encryption method: ",font=label_font_tuple,background=BACKGROUND,foreground=lable_text_color)
+radio_label.grid(row=0,column=0,pady=s_padding,padx=s_padding,sticky='W')
+
+# Radio buttons for encryption strictness levels
+r0 = Radiobutton(master=radFrame, text="Auto Generate Key", variable=enc_strictness,font=label_font_tuple, background=BACKGROUND, activebackground=lighter_BG, value=0, command=lambda : commands.radio_command(enc_strictness, key_entry,key))
+r0.grid(row=0,column=1,padx=s_padding,pady=s_padding,sticky='W')
+
+r1 = Radiobutton(master=radFrame, text="Security Level 1", variable=enc_strictness,font=label_font_tuple, background=BACKGROUND, activebackground=lighter_BG, value=1, command=lambda : commands.radio_command(enc_strictness, key_entry,key))
+r1.grid(row=0,column=2,padx=s_padding,pady=s_padding,sticky='W')
+
+r2 = Radiobutton(master=radFrame, text="Security Level 2", variable=enc_strictness,font=label_font_tuple, background=BACKGROUND, activebackground=lighter_BG, value=2, command=lambda : commands.radio_command(enc_strictness, key_entry,key))
+r2.grid(row=0,column=3,padx=s_padding,pady=s_padding,sticky='W')
+# calling this command externally to initialize default condition
+commands.radio_command(enc_strictness, key_entry,key)
+# help button which shows information about different encryption methods.
+help_btn = Button(master=radFrame, text="Show info about encryption methods", activebackground=lighter_BG,font=btn_font_tuple,relief=RAISED,foreground=lable_text_color,background=darker_BG,command=lambda: commands.show_enc_help())
+help_btn.grid(row=0,column=4,padx=s_padding,pady=s_padding,sticky='W')
+# -- End of Radio Frame -- #
+
+# Buttons
+opntxt_btn = Button(master=inpFrame, text="Open a file to load text", activebackground=lighter_BG, font=btn_font_tuple, relief=RAISED, foreground=lable_text_color, background=darker_BG, command=lambda: commands.get_file_data(inp_field))
+opntxt_btn.grid(row=3, column=1, pady=s_padding, padx=s_padding,sticky=NW)
+
+embedtxt_btn = Button(master=inpFrame, text="Embed text into image", activebackground=lighter_BG, font=btn_font_tuple, relief=RAISED, foreground=lable_text_color, background=darker_BG, command=lambda: commands.create_image(inp_field,key,enc_strictness))
+embedtxt_btn.grid(row=3, column=1, pady=s_padding, padx=s_padding,sticky=NE)
+
+# ---- End of Input Frame ---- #
+
+# Frame for extracting operations
+extFrame = Frame(master=root,background=BACKGROUND)
+extFrame.pack(side=TOP,anchor=N)
+
+ext_title_label = Label(master=extFrame,text="Extract text from image :",font=header_font_tuple2,background=BACKGROUND,foreground=lable_text_color)
+ext_title_label.grid(row=0,column=1,pady=xs_padding,padx=xs_padding,sticky=N)
+
+ext_label = Label(master=extFrame,text="Extracted text :",font=label_font_tuple,background=BACKGROUND,foreground=lable_text_color)
+ext_label.grid(row=1,column=0,pady=s_padding,padx=s_padding,sticky=N,ipady=m_padding)
+ext_field = Text(master=extFrame,state=DISABLED,insertbackground=green_Tcolor,font=txt_font_tuple, foreground=green_Tcolor, background=darker_BG, height=12, width=115)
+ext_field.grid(row=1,column=1,padx=s_padding,pady=s_padding,sticky='N')
+
+opnimg_btn = Button(master=extFrame, text="Open image file to extract text", font=btn_font_tuple, foreground=lable_text_color, background=darker_BG, relief=RAISED, command=lambda : commands.open_image(ext_field))
+opnimg_btn.grid(row=2, column=1, pady=s_padding, padx=s_padding, sticky=N)
+
+savetxt_btn = Button(master=extFrame, text="Save extracted text to a file", font=btn_font_tuple, foreground=lable_text_color, background=darker_BG, relief=RAISED, command=lambda : commands.save_txt_file(ext_field))
+savetxt_btn.grid(row=2, column=1, pady=s_padding, padx=s_padding, sticky=NW)
+
+copyext_btn = Button(master=extFrame, text="Copy extracted text to clipboard", font=btn_font_tuple, foreground=lable_text_color, background=darker_BG, relief=RAISED, command=lambda : commands.copy_ext(ext_field,root))
+copyext_btn.grid(row=2, column=1, pady=s_padding, padx=s_padding, sticky=NE)
+# ---- End of Extracting frame ---- #
+
+root.mainloop()

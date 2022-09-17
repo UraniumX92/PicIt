@@ -45,6 +45,3 @@ def text_to_binary(txt:str):
 	for char in txt:
 		bstr += f"{decimal_to_binary(ord(char))} "
 	return bstr
-
-if __name__ == '__main__':
-    pass
