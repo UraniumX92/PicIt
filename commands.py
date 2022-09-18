@@ -13,6 +13,7 @@ import utils
 PIL.UnidentifiedImageError --> opened file is not image file
 
 """
+signature_text = img_utils.SIGNATURE_TEXT
 
 def show_enc_help():
     """
@@ -59,6 +60,7 @@ def create_image(txtarea:Text,keyvar:StringVar,enc_strc:IntVar):
     :param enc_strc:
     :return: None
     """
+    MIN_LENGTH = 10
     text = txtarea.get(1.0,END)
     text = text[:-1] if text[-1]=='\n' else text
     key = []
@@ -68,6 +70,8 @@ def create_image(txtarea:Text,keyvar:StringVar,enc_strc:IntVar):
 
     if text == '' or key_val == '':
         return msgbox.showerror(title="Fields empty",message="Please fill all the required fields")
+    elif len(text)<MIN_LENGTH:
+        return msgbox.showerror(title="Text too small",message=f"Text should have atleast {MIN_LENGTH} characters.")
 
     match enc_val:
         case 0:
@@ -117,30 +121,39 @@ def open_image(textarea:Text):
                 textarea.delete(1.0,END)
                 textarea.insert(END,text)
             elif enctup == (1,0,0):
-                inpkey = askstring(title="Key required",prompt="Enter the encryption key :")
+                inpkey = askstring(title="Key required",prompt="Enter the encryption key :\t\t\t")
+                if inpkey=='' or (not inpkey):
+                    return msgbox.showerror(title="Error",message="cannot extract text without key")
                 rawtext = img_utils.extract_data(img)
                 inpkey = [ord(x) for x in inpkey]
                 text = utils.deciph(text=rawtext,key=inpkey)
-                text = ' '.join(text.split(" ")[1:-1])
+                tlist = text.split(' ')
+                if tlist[0] == signature_text and (tlist[0] == tlist[-1]):
+                    text = ' '.join(text.split(" ")[1:-1])
+                else:
+                    pass
                 textarea.delete(1.0,END)
                 textarea.insert(END,text)
             elif enctup == (1,1,0):
-                inpkey = askstring(title="Key required", prompt="Enter the encryption key :")
+                inpkey = askstring(title="Key required", prompt="Enter the encryption key :\t\t\t")
+                if inpkey=='' or (not inpkey):
+                    return msgbox.showerror(title="Error",message="cannot extract text without key")
                 rawtext = img_utils.extract_data(img)
                 inpkey = [ord(x) for x in inpkey]
                 text = utils.deciph(text=rawtext, key=inpkey)
                 tlist = text.split(' ')
-                if tlist[0] == "PicIt" and (tlist[0]==tlist[-1]):
+                if tlist[0] == signature_text and (tlist[0] == tlist[-1]):
                     text = ' '.join(text.split(" ")[1:-1])
                 else:
                     return msgbox.showerror(title="Incorrect key",message="Provided key is incorrect, cannot extract data from image")
                 textarea.delete(1.0,END)
                 textarea.insert(END,text)
-            return textarea.config(state=DISABLED)
+            textarea.config(state=DISABLED)
+            return msgbox.showinfo(title="Success",message="Succesfully extracted text from image!")
         except Exception as err:
             if isinstance(err,PIL.UnidentifiedImageError):
                 return msgbox.showerror(title="Invalid file type for image",message="Selected file is not an image file.")
-            elif isinstance(err,ValueError):
+            elif isinstance(err,TypeError):
                 return msgbox.showerror(title="Error",message=err.args[0])
 
 def get_file_data(textarea:Text):
@@ -198,5 +211,3 @@ def save_txt_file(txtarea:Text):
             with open(file,'w') as f:
                 f.write(text)
             msgbox.showinfo(title="Success",message=f"Text file successfully saved at: {file}")
-
-

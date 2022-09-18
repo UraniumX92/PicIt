@@ -4,6 +4,8 @@ import utils
 
 DEFAULT_COLOR = (0,0,0)
 LIMIT = 2365
+# signature text should not contain any spaces.
+SIGNATURE_TEXT = "PicIt-Signature-Text"
 
 def hide_data(message:str, key:list, enc_strictnes:tuple) -> Image.Image :
     """
@@ -16,7 +18,7 @@ def hide_data(message:str, key:list, enc_strictnes:tuple) -> Image.Image :
     :raises OverflowError : if the image requires more than 4000x4000 pixels
     """
     # Adding signature text to detect the key while extracting the data from image
-    message = f"PicIt {message} PicIt"
+    message = f"{SIGNATURE_TEXT} {message} {SIGNATURE_TEXT}"
     orientation = utils.randint(0,1)
     required_pixels = 6
     tup_size = 3
@@ -156,17 +158,17 @@ def hide_data(message:str, key:list, enc_strictnes:tuple) -> Image.Image :
 def check_img(img:Image.Image) -> Image.Image | None:
     """
     Takes an Image object and checks if the given image is encoded using PicIt or not
-    if image is not encoded by PicIt, then raises the exception `ValueError`
+    if image is not encoded by PicIt, then raises the exception `TypeError`
     or else returns None
 
     :param img: takes an PIL.Image.Image object
     :return: Image | None : if picture needs to get rotated, then returns the rotated picture | function is for only checking if the image is encoded using PicIt tool or not
-    :raises ValueError if the given image `img` is not encoded by PicIt tool
+    :raises TypeError if the given image `img` is not encoded by PicIt tool
     """
     img_len, x = img.size
     # checking if the image is square or not (i.e length should be equal to width)
     if x != img_len:
-        raise ValueError(f"Given image is not encoded by PicIt, code 1")
+        raise TypeError(f"Given image is not encoded by PicIt, code 1")
     # img len to use as index, for ease of use, decrementing by 1 and storing in variable below
     ti_len = img_len - 1
     map_to_pixel = {
@@ -186,12 +188,12 @@ def check_img(img:Image.Image) -> Image.Image | None:
         else:
             break
     if p01 != p10:
-        raise ValueError("Given image is not encoded by PicIt, code 2")
+        raise TypeError("Given image is not encoded by PicIt, code 2")
 
     # check if the middle value of key co-ordinate pixel is either 0 or 1 (this value represents the orientation of traversal)
     kct = img.getpixel(map_to_pixel['keyco-ord'])
     if kct[1] not in [0,1]:
-        raise ValueError("Given image is not encoded by PicIt, code 3")
+        raise TypeError("Given image is not encoded by PicIt, code 3")
     return img
 
 
@@ -201,7 +203,7 @@ def extract_data(img:Image.Image) -> str:
 
         :param img: Image object to extract data from
         :return: str : extracted text
-        :raises ValueError : if the given image `img` is not encoded by PicIt tool
+        :raises TypeError : if the given image `img` is not encoded by PicIt tool
     """
     # -- checking if the given image is encoded using PicIt or not -- #
     img = check_img(img)
@@ -338,7 +340,7 @@ def get_enc_tup(img:Image.Image) -> tuple:
     (n,n) --> Initial co-ordinates of key
     (0,1) and (1,0) --> strictness of encryption
     total 6
-    middle element of key length pixel decides if encoding is horizontal or vertical
+    middle element of key co-ordinates pixel decides if encoding is horizontal or vertical
     0 - vertical
     1 - horizontal
 """

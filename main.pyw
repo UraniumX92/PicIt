@@ -19,7 +19,7 @@
 
         > If Encryption key is to be entered manually, then there should be two cases:
             1. receiving user will have to enter correct key to extract the data
-                prefix "PicIt" to the plain message while hiding, if the entered key is correct then first word should be decrypted to "PicIt", this is how we know that encryption key is correct.
+                prefix and suffix a specific signature string to the plain message while hiding, if the entered key is correct then first word should be decrypted to the signature string, this is how we know that encryption key is correct.
             2. message will simply decrypt using given key, if key is wrong then user will see garbage text, else readable text
 
         > Encryption strictness tuple interpretation:
@@ -61,7 +61,6 @@ import random
 import img_utils
 import utils
 import os
-
 # CONSTANTS
 green_Tcolor = '#10AD14'
 BACKGROUND = '#2F3136'
@@ -79,7 +78,7 @@ lable_text_color = 'white'
 
 # root window configurations
 root = Tk()
-root.geometry("1250x900")
+root.geometry("1200x700")
 root.resizable(width=False,height=False)
 root.config(background=BACKGROUND)
 root.title("PicIt - Application by Syed Usama")
@@ -102,13 +101,13 @@ inpFrame.pack(side=TOP,pady=s_padding,padx=s_padding,expand=True,anchor=N)
 # Input text area
 inp_label = Label(master=inpFrame,text="Enter the text :",font=label_font_tuple,background=BACKGROUND,foreground=lable_text_color)
 inp_label.grid(row=0,column=0,pady=s_padding,padx=s_padding,sticky=N)
-inp_field = Text(master=inpFrame,insertbackground=green_Tcolor,font=txt_font_tuple, foreground=green_Tcolor, background=darker_BG, height=17, width=120)
+inp_field = Text(master=inpFrame,insertbackground=green_Tcolor,font=txt_font_tuple,wrap=NONE,foreground=green_Tcolor, background=darker_BG, height=10, width=110)
 inp_field.grid(row=0,column=1,padx=s_padding,pady=s_padding)
 
 # Key Label Entry
 key_label = Label(master=inpFrame,text="Enter the key :",font=label_font_tuple,background=BACKGROUND,foreground=lable_text_color)
 key_label.grid(row=1,column=0,pady=s_padding,padx=s_padding)
-key_entry =Entry(master=inpFrame,textvariable=key,width=120,background=darker_BG,font=txt_font_tuple,foreground=green_Tcolor,insertbackground=green_Tcolor,readonlybackground=BACKGROUND)
+key_entry =Entry(master=inpFrame,textvariable=key,width=110,background=darker_BG,font=txt_font_tuple,foreground=green_Tcolor,insertbackground=green_Tcolor,readonlybackground=BACKGROUND)
 key_entry.grid(row=1,column=1,padx=s_padding,pady=s_padding,ipady=xs_padding)
 
 
@@ -132,7 +131,7 @@ r2.grid(row=0,column=3,padx=s_padding,pady=s_padding,sticky='W')
 commands.radio_command(enc_strictness, key_entry,key)
 # help button which shows information about different encryption methods.
 help_btn = Button(master=radFrame, text="Show info about encryption methods", activebackground=lighter_BG,font=btn_font_tuple,relief=RAISED,foreground=lable_text_color,background=darker_BG,command=lambda: commands.show_enc_help())
-help_btn.grid(row=0,column=4,padx=s_padding,pady=s_padding,sticky='W')
+help_btn.grid(row=0,column=4,padx=s_padding,pady=s_padding,sticky='E')
 # -- End of Radio Frame -- #
 
 # Buttons
@@ -153,7 +152,7 @@ ext_title_label.grid(row=0,column=1,pady=xs_padding,padx=xs_padding,sticky=N)
 
 ext_label = Label(master=extFrame,text="Extracted text :",font=label_font_tuple,background=BACKGROUND,foreground=lable_text_color)
 ext_label.grid(row=1,column=0,pady=s_padding,padx=s_padding,sticky=N,ipady=m_padding)
-ext_field = Text(master=extFrame,state=DISABLED,insertbackground=green_Tcolor,font=txt_font_tuple, foreground=green_Tcolor, background=darker_BG, height=12, width=115)
+ext_field = Text(master=extFrame,state=DISABLED,wrap=NONE,insertbackground=green_Tcolor,font=txt_font_tuple, foreground=green_Tcolor, background=darker_BG, height=10, width=110)
 ext_field.grid(row=1,column=1,padx=s_padding,pady=s_padding,sticky='N')
 
 opnimg_btn = Button(master=extFrame, text="Open image file to extract text", font=btn_font_tuple, foreground=lable_text_color, background=darker_BG, relief=RAISED, command=lambda : commands.open_image(ext_field))
