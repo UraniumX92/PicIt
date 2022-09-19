@@ -148,9 +148,9 @@ def get_key(strval:str):
     try:
         k = json.loads(strval)
         if type(k) != type(list()):
-            raise json.decoder.JSONDecodeError("not int")
+            raise json.decoder.JSONDecodeError("not int","",0)
         elif any(type(x) != type(int()) for x in k):
-            raise json.decoder.JSONDecodeError("not int")
+            raise json.decoder.JSONDecodeError("not int","",0)
     except json.decoder.JSONDecodeError:
         k = [ord(x) for x in strval]
     return k
