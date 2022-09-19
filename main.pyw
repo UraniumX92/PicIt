@@ -86,7 +86,6 @@ root.title("PicIt - Application by Syed Usama")
 # Variables
 enc_strictness = IntVar()
 key = StringVar()
-ext_key = StringVar()
 
 # ---- creating and packing GUI elements ---- #
 
@@ -96,49 +95,53 @@ t_label.pack(side=TOP,pady=m_padding,padx=m_padding,ipady=s_padding,ipadx=s_padd
 
 # Input Frame
 inpFrame = Frame(master=root,background=BACKGROUND)
-inpFrame.pack(side=TOP,pady=s_padding,padx=s_padding,expand=True,anchor=N)
+inpFrame.pack(side=TOP,anchor=N)
 
 # Input text area
 inp_label = Label(master=inpFrame,text="Enter the text :",font=label_font_tuple,background=BACKGROUND,foreground=lable_text_color)
-inp_label.grid(row=0,column=0,pady=s_padding,padx=s_padding,sticky=N)
+inp_label.grid(row=0,column=0,pady=s_padding,padx=s_padding,sticky=NE)
 inp_field = Text(master=inpFrame,insertbackground=green_Tcolor,font=txt_font_tuple,wrap=NONE,foreground=green_Tcolor, background=darker_BG, height=10, width=110)
 inp_field.grid(row=0,column=1,padx=s_padding,pady=s_padding)
 
 # Key Label Entry
 key_label = Label(master=inpFrame,text="Enter the key :",font=label_font_tuple,background=BACKGROUND,foreground=lable_text_color)
-key_label.grid(row=1,column=0,pady=s_padding,padx=s_padding)
+key_label.grid(row=1,column=0,pady=s_padding,padx=s_padding,sticky=NE)
 key_entry =Entry(master=inpFrame,textvariable=key,width=110,background=darker_BG,font=txt_font_tuple,foreground=green_Tcolor,insertbackground=green_Tcolor,readonlybackground=BACKGROUND)
 key_entry.grid(row=1,column=1,padx=s_padding,pady=s_padding,ipady=xs_padding)
 
+radio_label = Label(master=inpFrame,text="Encryption method: ",font=label_font_tuple,background=BACKGROUND,foreground=lable_text_color)
+radio_label.grid(row=2,column=0,sticky=E)
 
 # Radio Frame for storing radio buttons
-radFrame = Frame(master=inpFrame,background=BACKGROUND)
+radFrame = Frame(master=inpFrame,background=BACKGROUND,width=110)
 radFrame.grid(row=2,column=1)
 
-radio_label = Label(master=radFrame,text="Select Encryption method: ",font=label_font_tuple,background=BACKGROUND,foreground=lable_text_color)
-radio_label.grid(row=0,column=0,pady=s_padding,padx=s_padding,sticky='W')
+ran_key_btn = Button(master=radFrame, text="Generate random key", activebackground=lighter_BG,font=btn_font_tuple,relief=RAISED,foreground=lable_text_color,background=darker_BG,command=lambda: commands.get_random_key(key))
+ran_key_btn.grid(row=0,column=0,padx=s_padding,pady=s_padding,sticky='W')
 
 # Radio buttons for encryption strictness levels
-r0 = Radiobutton(master=radFrame, text="Auto Generate Key", variable=enc_strictness,font=label_font_tuple, background=BACKGROUND, activebackground=lighter_BG, value=0, command=lambda : commands.radio_command(enc_strictness, key_entry,key))
+r0 = Radiobutton(master=radFrame, text="Security Level 0", variable=enc_strictness,font=label_font_tuple, background=BACKGROUND, activebackground=lighter_BG, value=0, command=lambda : None)
 r0.grid(row=0,column=1,padx=s_padding,pady=s_padding,sticky='W')
 
-r1 = Radiobutton(master=radFrame, text="Security Level 1", variable=enc_strictness,font=label_font_tuple, background=BACKGROUND, activebackground=lighter_BG, value=1, command=lambda : commands.radio_command(enc_strictness, key_entry,key))
+r1 = Radiobutton(master=radFrame, text="Security Level 1", variable=enc_strictness,font=label_font_tuple, background=BACKGROUND, activebackground=lighter_BG, value=1, command=lambda : None)
 r1.grid(row=0,column=2,padx=s_padding,pady=s_padding,sticky='W')
 
-r2 = Radiobutton(master=radFrame, text="Security Level 2", variable=enc_strictness,font=label_font_tuple, background=BACKGROUND, activebackground=lighter_BG, value=2, command=lambda : commands.radio_command(enc_strictness, key_entry,key))
+r2 = Radiobutton(master=radFrame, text="Security Level 2", variable=enc_strictness,font=label_font_tuple, background=BACKGROUND, activebackground=lighter_BG, value=2, command=lambda : None)
 r2.grid(row=0,column=3,padx=s_padding,pady=s_padding,sticky='W')
-# calling this command externally to initialize default condition
-commands.radio_command(enc_strictness, key_entry,key)
+
 # help button which shows information about different encryption methods.
-help_btn = Button(master=radFrame, text="Show info about encryption methods", activebackground=lighter_BG,font=btn_font_tuple,relief=RAISED,foreground=lable_text_color,background=darker_BG,command=lambda: commands.show_enc_help())
+help_btn = Button(master=radFrame, text="What are these security levels?", activebackground=lighter_BG,font=btn_font_tuple,relief=RAISED,foreground=lable_text_color,background=darker_BG,command=lambda: commands.show_enc_help())
 help_btn.grid(row=0,column=4,padx=s_padding,pady=s_padding,sticky='E')
 # -- End of Radio Frame -- #
 
 # Buttons
-opntxt_btn = Button(master=inpFrame, text="Open a file to load text", activebackground=lighter_BG, font=btn_font_tuple, relief=RAISED, foreground=lable_text_color, background=darker_BG, command=lambda: commands.get_file_data(inp_field))
-opntxt_btn.grid(row=3, column=1, pady=s_padding, padx=s_padding,sticky=NW)
+cpy_key_btn = Button(master=inpFrame, text="Copy key to clipboard", activebackground=lighter_BG, font=btn_font_tuple, relief=RAISED, foreground=lable_text_color, background=darker_BG, command=lambda: commands.copy_key(key,root))
+cpy_key_btn.grid(row=3, column=1, pady=s_padding, padx=s_padding,sticky=NW)
 
-embedtxt_btn = Button(master=inpFrame, text="Embed text into image", activebackground=lighter_BG, font=btn_font_tuple, relief=RAISED, foreground=lable_text_color, background=darker_BG, command=lambda: commands.create_image(inp_field,key,enc_strictness))
+opntxt_btn = Button(master=inpFrame, text="Open a file to load text", activebackground=lighter_BG, font=btn_font_tuple, relief=RAISED, foreground=lable_text_color, background=darker_BG, command=lambda: commands.get_file_data(inp_field))
+opntxt_btn.grid(row=3, column=1, pady=s_padding, padx=s_padding,sticky=N)
+
+embedtxt_btn = Button(master=inpFrame, text="Create image from text", activebackground=lighter_BG, font=btn_font_tuple, relief=RAISED, foreground=lable_text_color, background=darker_BG, command=lambda: commands.create_image(inp_field,key,enc_strictness))
 embedtxt_btn.grid(row=3, column=1, pady=s_padding, padx=s_padding,sticky=NE)
 
 # ---- End of Input Frame ---- #
@@ -151,18 +154,18 @@ ext_title_label = Label(master=extFrame,text="Extract text from image :",font=he
 ext_title_label.grid(row=0,column=1,pady=xs_padding,padx=xs_padding,sticky=N)
 
 ext_label = Label(master=extFrame,text="Extracted text :",font=label_font_tuple,background=BACKGROUND,foreground=lable_text_color)
-ext_label.grid(row=1,column=0,pady=s_padding,padx=s_padding,sticky=N,ipady=m_padding)
+ext_label.grid(row=1,column=0,pady=s_padding,padx=s_padding,sticky=NE)
 ext_field = Text(master=extFrame,state=DISABLED,wrap=NONE,insertbackground=green_Tcolor,font=txt_font_tuple, foreground=green_Tcolor, background=darker_BG, height=10, width=110)
-ext_field.grid(row=1,column=1,padx=s_padding,pady=s_padding,sticky='N')
+ext_field.grid(row=1,column=1,padx=s_padding,pady=s_padding,sticky=N)
 
 opnimg_btn = Button(master=extFrame, text="Open image file to extract text", font=btn_font_tuple, foreground=lable_text_color, background=darker_BG, relief=RAISED, command=lambda : commands.open_image(ext_field))
 opnimg_btn.grid(row=2, column=1, pady=s_padding, padx=s_padding, sticky=N)
 
-savetxt_btn = Button(master=extFrame, text="Save extracted text to a file", font=btn_font_tuple, foreground=lable_text_color, background=darker_BG, relief=RAISED, command=lambda : commands.save_txt_file(ext_field))
-savetxt_btn.grid(row=2, column=1, pady=s_padding, padx=s_padding, sticky=NW)
+savetxt_btn = Button(master=extFrame, text="Save extracted text in a file", font=btn_font_tuple, foreground=lable_text_color, background=darker_BG, relief=RAISED, command=lambda : commands.save_txt_file(ext_field))
+savetxt_btn.grid(row=2, column=1, pady=s_padding, padx=s_padding, sticky=NE)
 
 copyext_btn = Button(master=extFrame, text="Copy extracted text to clipboard", font=btn_font_tuple, foreground=lable_text_color, background=darker_BG, relief=RAISED, command=lambda : commands.copy_ext(ext_field,root))
-copyext_btn.grid(row=2, column=1, pady=s_padding, padx=s_padding, sticky=NE)
+copyext_btn.grid(row=2, column=1, pady=s_padding, padx=s_padding, sticky=NW)
 # ---- End of Extracting frame ---- #
 
 root.mainloop()

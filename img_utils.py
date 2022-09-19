@@ -1,11 +1,12 @@
-import PIL
 from PIL import Image
 import utils
 
 DEFAULT_COLOR = (0,0,0)
-LIMIT = 2365
+MAX_PIXEL_LIMIT = 2360
+MAX_TEXT_LIMIT = (2 ** 24) - 1
 # signature text should not contain any spaces.
-SIGNATURE_TEXT = "PicIt-Signature-Text"
+SIGNATURE_TEXT = "PicIt-Signature-Text-To-Insert-With-Text-And-To-Check-Correctness-Of-The-Key"
+sgt_list = ["PicIt","PicIt-Signature-Text",SIGNATURE_TEXT]
 
 def hide_data(message:str, key:list, enc_strictnes:tuple) -> Image.Image :
     """
@@ -15,7 +16,7 @@ def hide_data(message:str, key:list, enc_strictnes:tuple) -> Image.Image :
     :param key: encryption key (list of int)
     :param enc_strictnes: strictness of encryption, a tuple of length 3
     :return: Image which is having data hidden in it
-    :raises OverflowError : if the image requires more than 4000x4000 pixels
+    :raises OverflowError : if the image requires more than 2360x2360 pixels
     """
     # Adding signature text to detect the key while extracting the data from image
     message = f"{SIGNATURE_TEXT} {message} {SIGNATURE_TEXT}"
@@ -28,8 +29,8 @@ def hide_data(message:str, key:list, enc_strictnes:tuple) -> Image.Image :
     enc_tup = utils.oneD_to_2DList(enc_tup,tup_size,tuple)
     required_pixels += (len(enc_tup) + len(key_tup))
     img_len = utils.get_dimension(required_pixels)
-    if img_len>LIMIT:
-        raise OverflowError("Image size too long, reduce the size of text into smaller chunks and encode in image.")
+    if img_len>MAX_PIXEL_LIMIT or len(encrypted_text)>MAX_TEXT_LIMIT:
+        raise OverflowError("Image size too big, divide the size of text into smaller chunks and try to create multiple images.")
     # img len to use as index, for ease of use, decrementing by 1 and storing in variable below
     ti_len = img_len-1
     map_to_pixel = {
@@ -155,14 +156,14 @@ def hide_data(message:str, key:list, enc_strictnes:tuple) -> Image.Image :
     return img
 
 
-def check_img(img:Image.Image) -> Image.Image | None:
+def check_img(img:Image.Image) -> Image.Image :
     """
     Takes an Image object and checks if the given image is encoded using PicIt or not
     if image is not encoded by PicIt, then raises the exception `TypeError`
     or else returns None
 
     :param img: takes an PIL.Image.Image object
-    :return: Image | None : if picture needs to get rotated, then returns the rotated picture | function is for only checking if the image is encoded using PicIt tool or not
+    :return: Image , rotated image with right orientation if image is not oriented
     :raises TypeError if the given image `img` is not encoded by PicIt tool
     """
     img_len, x = img.size

@@ -3,17 +3,11 @@ from tkinter.simpledialog import askstring
 from tkinter import messagebox as msgbox
 from tkinter import filedialog as fd
 import json
-import PIL
 from PIL import Image
 import img_utils
 import os
 import utils
 
-"""
-PIL.UnidentifiedImageError --> opened file is not image file
-
-"""
-signature_text = img_utils.SIGNATURE_TEXT
 
 def show_enc_help():
     """
@@ -21,34 +15,14 @@ def show_enc_help():
 
     :return: None
     """
-    msg = ("Auto Generate key : \nA random key will be generated and key will be included in image, any user having this tool can extract from such images.\n\n"
-           "Security Level 1 : \nEncryption key will be taken by user, while extracting from image, user will be prompted to enter the key, this key will be used to decrypt the text even if the key is incorrect.\n\n"
-           "Security Level 2 : \nSame as Security Level 1, but in this case encryption key should be entered correctly while extracting, or else user will not be given any data.\n\n"
+    msg = ("Security Level 0 : \nThe encryption key will be included in image, any user having this tool can extract from such images.\n\n"
+           "Security Level 1 : \nKey will not be included in image. While extracting from image, user will be prompted to enter the key, this key will be used to decrypt the text even if the key is incorrect. \n"
+           "Needless to state: if the key is incorrect, the extracted text will look like garbage text\n\n"
+           "Security Level 2 : \nKey will not be included in image, but in this case encryption key should be entered correctly while extracting, otherwise user will not be provided any extracted text.\n\n"
            "Note : \nWhile manually entering key, you need not enter numbers separated by commas (like in auto generated key), you are supposed to use the key like a \"password\" for the image,"
            " you can just enter the text in that area.")
-    msgbox.showinfo(title="Encryption Methods",message=msg)
+    msgbox.showinfo(title="Security Levels",message=msg)
 
-def radio_command(var:IntVar, entry:Entry,entryVar:StringVar):
-    """
-    gets the radio button value and clears the key input entry field or generates random key based on radio values
-
-    :param var:
-    :param entry:
-    :param entryVar:
-    :return: None
-    """
-    value = var.get()
-    match value:
-        case 0:
-            entry.config(state='readonly')
-            entryVar.set(f"{utils.random_KeyGen(utils.randint(15,20))}")
-
-        case 1:
-            entryVar.set("")
-            entry.config(state='normal')
-        case 2:
-            entryVar.set("")
-            entry.config(state='normal')
 
 def create_image(txtarea:Text,keyvar:StringVar,enc_strc:IntVar):
     """
@@ -75,22 +49,24 @@ def create_image(txtarea:Text,keyvar:StringVar,enc_strc:IntVar):
 
     match enc_val:
         case 0:
-            key = json.loads(key_val)
             encst_tup = (0,0,0)
         case 1:
             encst_tup = (1,0,0)
-            key = [ord(x) for x in key_val]
         case 2:
             encst_tup = (1,1,0)
-            key = [ord(x) for x in key_val]
 
-    enclist = ['Randomly generated key','Security Level 1','Security Level 2']
-    confirm = msgbox.askyesno(title="Confirmation",message=f"are your sure you want to proceed with {enclist[enc_val]}?")
+    key = utils.get_key(key_val)
+
+    confirm = msgbox.askyesno(title="Confirmation",message=f"are you sure you want to proceed with Security Level {enc_val} ?")
     if confirm:
-        img = img_utils.hide_data(message=text,key=key,enc_strictnes=encst_tup)
+        try:
+            img = img_utils.hide_data(message=text,key=key,enc_strictnes=encst_tup)
+        except OverflowError as err: # if image to be created requires too many pixels (img_utils.LIMIT)
+            return msgbox.showerror(title="Text is too long",message=err.args[0])
+
         file = fd.asksaveasfilename(title="Save the created image as",initialdir=os.getcwd())
         if file!='':
-            sf = file.split('.')
+            sf = file.split(".")
             if len(sf)==1:
                 sf.append('')
             sf[-1] = 'png'
@@ -125,10 +101,10 @@ def open_image(textarea:Text):
                 if inpkey=='' or (not inpkey):
                     return msgbox.showerror(title="Error",message="cannot extract text without key")
                 rawtext = img_utils.extract_data(img)
-                inpkey = [ord(x) for x in inpkey]
+                inpkey = utils.get_key(inpkey)
                 text = utils.deciph(text=rawtext,key=inpkey)
                 tlist = text.split(' ')
-                if tlist[0] == signature_text and (tlist[0] == tlist[-1]):
+                if tlist[0] in img_utils.sgt_list and (tlist[0] == tlist[-1]):
                     text = ' '.join(text.split(" ")[1:-1])
                 else:
                     pass
@@ -139,10 +115,10 @@ def open_image(textarea:Text):
                 if inpkey=='' or (not inpkey):
                     return msgbox.showerror(title="Error",message="cannot extract text without key")
                 rawtext = img_utils.extract_data(img)
-                inpkey = [ord(x) for x in inpkey]
+                inpkey = utils.get_key(inpkey)
                 text = utils.deciph(text=rawtext, key=inpkey)
                 tlist = text.split(' ')
-                if tlist[0] == signature_text and (tlist[0] == tlist[-1]):
+                if tlist[0] in img_utils.sgt_list and (tlist[0] == tlist[-1]):
                     text = ' '.join(text.split(" ")[1:-1])
                 else:
                     return msgbox.showerror(title="Incorrect key",message="Provided key is incorrect, cannot extract data from image")
@@ -172,7 +148,6 @@ def get_file_data(textarea:Text):
             textarea.insert(1.0,data)
     except UnicodeDecodeError:
         msgbox.showerror(title="Invalid data format",message="Selected file does not contain text data.")
-
 
 
 def copy_ext(txtarea:Text,root:Tk):
@@ -211,3 +186,18 @@ def save_txt_file(txtarea:Text):
             with open(file,'w') as f:
                 f.write(text)
             msgbox.showinfo(title="Success",message=f"Text file successfully saved at: {file}")
+
+def copy_key(s_var:StringVar,root:Tk):
+    """
+    copies the text from StringVar variable and appends to clipboard
+
+    :param val:
+    :param root:
+    :return: None
+    """
+    root.clipboard_clear()
+    root.clipboard_append(s_var.get())
+    root.update()
+
+def get_random_key(entry_var:StringVar):
+    entry_var.set(f"{utils.random_KeyGen(20)}")
