@@ -135,14 +135,14 @@ def get_size_from_tuple(tup:tuple) -> int:
     b24bit = "".join(btup)
     return binary_conversion.binary_to_decimal(b24bit)
 
-def get_key(strval:str):
+def get_key(strval:str) -> list[int]:
     """
     takes string, tries to decode using json, converts to list
     checks if all the elements in the list are integers or not, if not, then tries to convert the characters to integer using ord().
     if it fails to so.. then entire string will be taken as string key, and each character of this string will be converted to integer and returns as list
 
-    :param strval:
-    :return: list
+    :param strval: str
+    :return: list[int]
     """
     k = []
     try:

@@ -5,6 +5,7 @@ from tkinter import filedialog as fd
 import json
 from PIL import Image
 import img_utils
+import PIL
 import os
 import utils
 

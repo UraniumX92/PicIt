@@ -1,5 +1,6 @@
 from PIL import Image
 import utils
+import PIL
 
 DEFAULT_COLOR = (0,0,0)
 MAX_PIXEL_LIMIT = 2360
@@ -194,7 +195,7 @@ def check_img(img:Image.Image) -> Image.Image :
     # check if the middle value of key co-ordinate pixel is either 0 or 1 (this value represents the orientation of traversal)
     kct = img.getpixel(map_to_pixel['keyco-ord'])
     if kct[1] not in [0,1]:
-        raise TypeError("Given image is not encoded by PicIt, code 3")
+        raise TypeError(f"Given image is not encoded by PicIt, code 3 {kct}")
     return img
 
 
